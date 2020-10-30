@@ -165,6 +165,17 @@ func (re *Renderer) renderLine(line string, out io.Writer) error {
 				// Write current rune to current link
 				linkContent.WriteRune(r) //nolint: errcheck
 			}
+		} else if lastCode > -1 {
+			if r == '\\' { // Escapes still work on `
+				lastEscape = n
+			} else if r == '`' { // End code is the only control character in code
+				if _, err := out.Write(re.codeTextEnd); err != nil {
+					return err
+				}
+				lastCode = -1
+			} else {
+				writeEscapedRune(r, out)
+			}
 		} else {
 			switch r {
 			case '\\':
@@ -182,17 +193,10 @@ func (re *Renderer) renderLine(line string, out io.Writer) error {
 					lastBold = -1
 				}
 			case '`':
-				if lastCode < 0 {
-					if _, err := out.Write(re.codeTextStart); err != nil {
-						return err
-					}
-					lastCode = n
-				} else {
-					if _, err := out.Write(re.codeTextEnd); err != nil {
-						return err
-					}
-					lastCode = -1
+				if _, err := out.Write(re.codeTextStart); err != nil {
+					return err
 				}
+				lastCode = n
 			case '[':
 				lastLink = n
 

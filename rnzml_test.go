@@ -123,6 +123,16 @@ func TestRenderLine(t *testing.T) {
 			t.Errorf("expected error")
 		}
 	})
+	t.Run("Should not allow other formatting in code blocks", func(t *testing.T) {
+		out := &strings.Builder{}
+		expected := "<code>a := *p</code>"
+		err := r.renderLine("`a := *p`", out)
+		if err != nil {
+			t.Error(err)
+		} else if expected != out.String() {
+			t.Errorf("expected: '%s' got: '%s'", expected, out.String())
+		}
+	})
 	t.Run("Should escape basic HTML control characters", func(t *testing.T) {
 		out := &strings.Builder{}
 		expected := "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;"
